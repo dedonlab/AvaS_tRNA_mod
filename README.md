@@ -19,8 +19,10 @@ seqkit v2.8.0 https://bioinf.shenwei.me/seqkit/
 python v3.12 https://www.python.org/
 
 ## Usage
-1. Dowload genome IDs in a list. For example, Select representative genomes using filters: Organism: bacteria, Reference: representative, Quality: Good, Status: Complete.
-bac_rep_4245.txt (4245 representative bacterial genomes)  
+#### 1 Data retrieval
+1.1 Dowload genome IDs in a list. For example, Select representative genomes using filters: Organism: bacteria, Reference: representative, Quality: Good, Status: Complete.  
+bac_rep_4245.txt (4245 representative bacterial genomes)
+ 
 Repeat the step for other genus and species.  
 Aeromonas_gid.txt (Aeromonas)  
 Flavobacterium_gid.txt (Flavobacterium)  
@@ -40,20 +42,16 @@ Sone_gid.txt (Shewanella oneidensis)
 Vcho_gid.txt (Vibrio cholerae)  
 Vpara_gid.txt (Vibrio parahaemolyticus)
 
-2. 
-
-3. Retrieve data from BV-BRC (https://www.bv-brc.org/), including CDS sequences (ffn files), genome sequences (fna files) and protein sequences (faa files)
-4. 
-
-
-
+1.2 Retrieve data from BV-BRC (https://www.bv-brc.org/), including CDS sequences (ffn files), genome sequences (fna files) and protein sequences (faa files)
 
 ```
+gid_list=${list of genome IDs.txt}
+
 mkdir fnafiles || true
 mkdir ffnfiles || true
 mkdir faafiles || true
 
-for id in $(cat wget_gid.txt);  do
+for id in $(cat ${gid_list});  do
   wget -qN "ftp://ftp.patricbrc.org/genomes/${id}/${id}.fna" -P fnafiles
   wget -qN "ftp://ftp.patricbrc.org/genomes/${id}/${id}.PATRIC.ffn" -P ffnfiles
   wget -qN "ftp://ftp.patricbrc.org/genomes/${id}/${id}.PATRIC.faa" -P faafiles
