@@ -17,7 +17,7 @@ mafft v7.520 https://mafft.cbrc.jp/alignment/software/
 BMGE v1.12 http://ftp.pasteur.fr/pub/gensoft/projects/BMGE/  
 MASH v2.3 https://github.com/marbl/mash  
 seqkit v2.8.0 https://bioinf.shenwei.me/seqkit/  
-python v3.12 https://www.python.org/
+python v3.12 https://www.python.org/  
 raxml-ng v1.1.0 https://github.com/amkozlov/raxml-ng  
 ncbi_blast v2.15.0 https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/  
 java v11 and higher https://www.oracle.com/java/technologies/downloads/#java11  
@@ -63,9 +63,9 @@ done
 ```
 
 #### 2. phylogeny tree  
-2.1 Retrieve selected protein sequences and do MSA.
+Retrieve selected protein sequences and do MSA.
 
-````
+```
 aln=${fasta file of protein sequences}
 
 # MSA
@@ -88,15 +88,17 @@ raxml-ng --bootstrap --msa "${aln}"_BMGE.fasta --bs-trees 1000 --seed 123 \
 # bootstrap comparison
 raxml-ng --support --tree result.raxml.bestTree --threads 12 \
          --bs-trees boot.raxml.bootstraps --prefix support
+```
 
-# Blastp
+#### 3. BLAST searching  
+```
 # build blastDB
-dir_db=/blue/lagard/yuanyifeng/BV-DB/faafiles
+dir_db=${path to faa files of protein sequences}
 
 ls ${dir_db}/*faa | xargs -i makeblastdb -in {} -dbtype prot -parse_seqids -out {}_blastdb
 
 dir_o=outfile_cog
-qfaa= # name query sequences here.
+qfaa=${ name query sequences, e.g. AvaS}
 
 mkdir ${dir_o} || true
 
@@ -115,9 +117,9 @@ done
 dir_o=outfiles_tblastn_"${org}"
 mkdir ${dir_o} || true
 
-qfaa= # name query sequences here.
-org= # name the genus for searching here.
-dir_db=/blue/lagard/yuanyifeng/PA14_24190/bv_"${org}"/fnafiles
+qfaa= ${ name query sequences }
+org= ${ name the genus for searching }
+dir_db=${ path to fna files }
 
 ## build blastDB
 ls ${dir_db}/*fna | xargs -i makeblastdb -in {} -dbtype nucl -out {}_blastdb
@@ -131,28 +133,32 @@ for gid in $(cat "${org}"_gid.txt); do
          -outfmt "7 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore staxids salltitles"
          #-outfmt 0
 done
+```
 
-# MASH
-module load mash/2.3
+#### 3. Calculate distance between two genomes using MASH  
+```
 mash sketch -p 6 -o abs_sketch -l avaS_abs_gid.txt
 mash sketch -p 6 -o pre_sketch -l avaS_pre_gid.txt
 mash dist -p 6 abs_sketch.msh pre_sketch.msh > mash_result.txt
 
 # extract mash result
 for g in $(cat gid.txt | sed 's/^g//') ; do
-  grep "${g}.fna" mash_result.txt | sed -E 's#/blue/lagard/yuanyifeng/PA14_24190/bv_[A-Za-z]+/fnafiles/#g#g' | sort -k3,3n | sed 's/\.fna//g' | head -1
+  grep "${g}.fna" mash_result.txt | sed -E 's#${ path to fna files }#g#g' | sort -k3,3n | sed 's/\.fna//g' | head -1
 done
+```
 
-# Codon analysis
+#### 4. Codon analysis  
+```
 # Run the attached scripts below
 1_pycodon_count.sh
 2_count2CDScodon.sh
 3_AUA_Nstats.sh
 3_AUAstats.sh
 4_CDS_AUA_N_summary.sh
+```
 
-# GESA
-
+#### 5. GESA  
+```
 # 1. prepare GO annotation for each organism in EXCEL and save as xxx_go_bvbrc.txt
 # convert to .gmt format
 
@@ -201,6 +207,8 @@ export QT_QPA_PLATFORM_PLUGIN_PATH=/usr/lib/x86_64-linux-gnu/qt5/plugins/platfor
 
 # 3 Run gseapy preranked analysis
 # run the python3 script below
+```
+
 
 import gseapy as gp
 
