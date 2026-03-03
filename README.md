@@ -158,7 +158,7 @@ cut -d$'\t' -f2 mash_res_minimum_by_gidSpne.txt >> other_gid.txt
 
 #### 4. Codon analysis  
 ```
-dir_w=${ working directory, e.g. working_dir}
+dir_w=${ working directory to a selected group of species/genus such as Aeromonas or Pseudomonas, e.g. working_dir}
 
 # Re-format CDS sequences (ffn files)
 mkdir ${dir_w}/ffn_prep || true
