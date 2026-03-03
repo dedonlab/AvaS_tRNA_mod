@@ -145,16 +145,107 @@ mash dist -p 6 abs_sketch.msh pre_sketch.msh > mash_result.txt
 for g in $(cat gid.txt | sed 's/^g//') ; do
   grep "${g}.fna" mash_result.txt | sed -E 's#${ path to fna files }#g#g' | sort -k3,3n | sed 's/\.fna//g' | head -1
 done
+
+#Clean the MASH result. Then, calculate the distance between genomes so the sum of distance is minimal.  
+python select_minimal_value_per_gid1.py mash_result_clean.txt mash_res_minimum_by_gidSpne.txt
+
+python select_pair_with_global_minimal_distance.py mash_result_clean.txt mash_res_global_minimum.txt
+
+cut -d$'\t' -f2 mash_result_global_minimum.txt > other_gid.txt
+
+cut -d$'\t' -f2 mash_res_minimum_by_gidSpne.txt >> other_gid.txt
 ```
 
 #### 4. Codon analysis  
 ```
-# Run the attached scripts below
-1_pycodon_count.sh
-2_count2CDScodon.sh
-3_AUA_Nstats.sh
-3_AUAstats.sh
-4_CDS_AUA_N_summary.sh
+dir_w=${ working directory, e.g. working_dir}
+
+# Re-format CDS sequences (ffn files)
+mkdir ${dir_w}/ffn_prep || true
+
+# remove CDSs less than 10 amino acids.
+# -l, print sequences in lower case.
+# -m, print sequences >= 10 aa (33 nts).
+
+gid_list=${list of genome IDs.txt}
+
+for gid in $(cat gid.txt) ; do
+  seqkit seq -g -l -m 33 ${dir_seq}/${gid%.fna}.ffn > ${dir_w}/ffn_prep/${gid%.fna}.ffn
+done
+
+# re-format ffn files.
+for gid in $(cat gid.txt) ; do
+  ffn=${dir_w}/ffn_prep/${gid}.ffn
+  sed -i '/^>/ s/ .*$/#/g' $ffn      # replace space after fig number with #.
+  sed -i ':a;N;$!ba;s/\n//g' $ffn    # delet all line breaks.
+  sed -i 's/>/\n>/g' $ffn            # make each > a new line.
+  sed -i 's/#/\n/g' $ffn             # make # a new line.
+  sed -i '/^>/! s/^...//' $ffn       # remove start codon.
+  sed -i '/^>/! s/...$//' $ffn       # remove stop codon.
+  sed -i '/^>/! s/.\{3\}/& /g' $ffn  # insert space every triplet.
+  sed -i '/^$/d' $ffn                # remove empty lines.
+done
+
+# count codons.
+for gid in $(cat gid.txt) ; do
+  ffn=${dir_w}/ffn_prep/${gid}.ffn
+  python 1_pycodon_count.py ${ffn} ${dir_w}
+done
+
+for gid in $(cat gid.txt) ; do
+  file=${dir_w}/py_count/${gid}.ffn_count.txt
+  python3 2_count2CDScodon.py ${file}
+done
+
+# extract AUA and AUN condon number.
+for file in $(ls ${dir_w}/ffn_prep/*\.ffn) ; do
+  python3 3_count_CDS_AUA_N.py "${file}" "${dir_w}"
+done
+
+# summerize AUA and AUN number.
+output=output=${ output file, e.g. AUA_number.txt}
+
+echo -e "gid\ttotal_nnn_a\ttotal_nnn_c\ttotal_nnn_g\ttotal_nnn_t\taua_a\taua_c\taua_g\taua_t\taua_a/aua_h" > "${output}"
+
+for file in $(ls ${working_dir}/aua_n_count/*.PATRIC.ffn_aua_n_count.txt); do
+  gid=g"$(basename "$file" | sed 's/.PATRIC.ffn_aua_n_count.txt//')"
+  total_aua_a=$(awk -F '\t' '{print $2}' "${file}" | paste -sd+ | bc)
+  total_aua_c=$(awk -F '\t' '{print $3}' "${file}" | paste -sd+ | bc)
+  total_aua_g=$(awk -F '\t' '{print $4}' "${file}" | paste -sd+ | bc)
+  total_aua_t=$(awk -F '\t' '{print $5}' "${file}" | paste -sd+ | bc)
+  total_nnn_a=$(awk -F '\t' '{print $6}' "${file}" | paste -sd+ | bc)
+  total_nnn_c=$(awk -F '\t' '{print $7}' "${file}" | paste -sd+ | bc)
+  total_nnn_g=$(awk -F '\t' '{print $8}' "${file}" | paste -sd+ | bc)
+  total_nnn_t=$(awk -F '\t' '{print $9}' "${file}" | paste -sd+ | bc)
+  
+  total_aua_h=$(echo "${total_aua_c} + ${total_aua_g} + ${total_aua_t}" | bc)
+  ratio_aua_a_over_aua_h=$(echo "scale=6; ${total_aua_a} / ${total_aua_h} " | bc)
+
+  echo -e "${gid}\t${total_aua_a}\t${total_aua_c}\t${total_aua_g}\t${total_aua_t}\t${total_nnn_a}\t${total_nnn_c}\t${total_nnn_g}\t${total_nnn_t}\t${ratio_aua_a_over_aua_h}" >> "${output}"
+done
+
+
+# summarize of AUA AUN ratio.
+output=${ output file, e.g. AUA_ratio.txt}
+
+echo -e "gid\ttotal_aua\ttotal_auh\ttotal_nnn\tratio_aua_syn_fold\taua_syn_gt_ratio\tratio_aua_fold\taua_gt_ratio\tnum_cds\tnum_cds_gt_aua_syn_ratio_per1000\tnum_cds_gt_aua_ratio_per100" > "${output}"
+
+for file in $(ls ${working_dir}/CDS_codon/*_CDScodon.tsv); do
+  gid=g"$(basename "$file" | sed 's/.PATRIC.ffn_CDScodon.tsv//')"
+  total_aua=$(awk -F '\t' 'FNR>1{print $14}' "${file}" | paste -sd+ | bc)
+  total_auc=$(awk -F '\t' 'FNR>1{print $15}' "${file}" | paste -sd+ | bc)
+  total_aut=$(awk -F '\t' 'FNR>1{print $17}' "${file}" | paste -sd+ | bc)
+  total_auh=$(echo "${total_aua} + ${total_auc} + ${total_aut}" | bc)
+  ratio_aua_syn_fold=$(echo "scale=6; ${total_aua} / ${total_auh}" | bc)
+  total_nnn=$(awk -F '\t' 'FNR==2{print $73}' "${file}")
+  ratio_aua_fold=$(echo "scale=6; ${total_aua} / ${total_nnn}" | bc)
+  aua_syn_gt_ratio=$(awk -F '\t' -v r=${ratio_aua_syn_fold} 'FNR>1&&($14+$15+$17)>0&&$14/($14+$15+$17)>r{print $1}' "${file}" | wc -l)
+  aua_gt_ratio=$(awk -F '\t' -v r=${ratio_aua_fold} 'FNR>1&&($14/$68)>r{print $1}' "${file}" | wc -l)
+  num_cds=$(awk -F '\t' 'FNR>1{print $1}' "${file}" | wc -l)
+  num_cds_gt_aua_syn_ratio_per1000=$(echo "scale=6; ${aua_syn_gt_ratio} / ${num_cds} *1000" | bc)
+  num_cds_gt_aua_ratio_per100=$(echo "scale=6; ${aua_gt_ratio} / ${num_cds} *100" | bc)
+  echo -e "${gid}\t${total_aua}\t${total_auh}\t${total_nnn}\t${ratio_aua_syn_fold}\t${aua_syn_gt_ratio}\t${ratio_aua_fold}\t${aua_gt_ratio}\t${num_cds}\t${num_cds_gt_aua_syn_ratio_per1000}\t${num_cds_gt_aua_ratio_per100}" >> "${output}"
+done
 ```
 
 #### 5. GESA  
