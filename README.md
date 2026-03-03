@@ -9,15 +9,13 @@ Contact Yifeng Yuan at yuanyifeng@ufl.edu
 ## Contributors
 Yifeng Yuan, Ph.D. and Peter C. Dedon (Principal Investigator)
 
-Version History
+Version History  
 v0.9.0 --2026/03/02 --create the repository and migrate data.
 
 ## Dependencies
-mafft v7.520 https://mafft.cbrc.jp/alignment/software/
-MASH v2.3 https://github.com/marbl/mash
-
-seqkit v2.8.0 https://bioinf.shenwei.me/seqkit/
-
+mafft v7.520 https://mafft.cbrc.jp/alignment/software/  
+MASH v2.3 https://github.com/marbl/mash  
+seqkit v2.8.0 https://bioinf.shenwei.me/seqkit/  
 python v3.12 https://www.python.org/
 
 ## Usage
