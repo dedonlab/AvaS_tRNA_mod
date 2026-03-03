@@ -20,25 +20,27 @@ python v3.12 https://www.python.org/
 
 ## Usage
 1. Dowload genome IDs in a list. For example, Select representative genomes using filters: Organism: bacteria, Reference: representative, Quality: Good, Status: Complete.
-bac_rep_4245.txt (4245 representative bacterial genomes)
-Repeat the step for other genus and species.
-Aeromonas_gid.txt (Aeromonas)
-Flavobacterium_gid.txt (Flavobacterium)
-Escherichia_gid.txt (Escherichia)
-Campylobacter_gid.txt (Campylobacter)
-Acinetobacter_gid.txt (Acinetobacter)
-other_gid.txt (other genus including Chitinophaga, Hymenobacter, Pedobacter, Pseudoalteromonas)
-vibrio_gid.txt (Vibrio)
-Streptomyces_gid.txt (Streptomyces)
-Shewanella_gid.txt (Shewanella)
-pseudo_gid.txt (Pseudomonas)
-Arcobacter_gid.txt (Arcobacter)
-Chryseobacterium_gid.txt (Chryseobacterium)
-Abmn_gid.txt (Acinetobacter baumannii)
-Ahyd_gid.txt (Aeromonas hydrophila)
-Sone_gid.txt (Shewanella oneidensis)
-Vcho_gid.txt (Vibrio cholerae)
+bac_rep_4245.txt (4245 representative bacterial genomes)  
+Repeat the step for other genus and species.  
+Aeromonas_gid.txt (Aeromonas)  
+Flavobacterium_gid.txt (Flavobacterium)  
+Escherichia_gid.txt (Escherichia)  
+Campylobacter_gid.txt (Campylobacter)  
+Acinetobacter_gid.txt (Acinetobacter)  
+other_gid.txt (other genus including Chitinophaga, Hymenobacter, Pedobacter, Pseudoalteromonas)  
+vibrio_gid.txt (Vibrio)  
+Streptomyces_gid.txt (Streptomyces)  
+Shewanella_gid.txt (Shewanella)  
+pseudo_gid.txt (Pseudomonas)  
+Arcobacter_gid.txt (Arcobacter)  
+Chryseobacterium_gid.txt (Chryseobacterium)  
+Abmn_gid.txt (Acinetobacter baumannii)  
+Ahyd_gid.txt (Aeromonas hydrophila)  
+Sone_gid.txt (Shewanella oneidensis)  
+Vcho_gid.txt (Vibrio cholerae)  
 Vpara_gid.txt (Vibrio parahaemolyticus)
+
+2. 
 
 3. Retrieve data from BV-BRC (https://www.bv-brc.org/), including CDS sequences (ffn files), genome sequences (fna files) and protein sequences (faa files)
 4. 
