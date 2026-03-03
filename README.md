@@ -14,12 +14,16 @@ v0.9.0 --2026/03/02 --create the repository and migrate data.
 
 ## Dependencies
 mafft v7.520 https://mafft.cbrc.jp/alignment/software/  
+BMGE v1.12 http://ftp.pasteur.fr/pub/gensoft/projects/BMGE/  
 MASH v2.3 https://github.com/marbl/mash  
 seqkit v2.8.0 https://bioinf.shenwei.me/seqkit/  
 python v3.12 https://www.python.org/
+raxml-ng v1.1.0 https://github.com/amkozlov/raxml-ng  
+ncbi_blast v2.15.0 https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/  
+java v11 and higher https://www.oracle.com/java/technologies/downloads/#java11  
 
 ## Usage
-#### 1 Data retrieval
+#### 1 Data retrieval  
 1.1 Dowload genome IDs in a list. For example, Select representative genomes using filters: Organism: bacteria, Reference: representative, Quality: Good, Status: Complete.  
 bac_rep_4245.txt (4245 representative bacterial genomes)
  
@@ -58,21 +62,22 @@ for id in $(cat ${gid_list});  do
 done
 ```
 
-#### 2. phylogeny tree
-#### 2.1 MSA  
-Retrieve selected protein 
+#### 2. phylogeny tree  
+2.1 Retrieve selected protein sequences and do MSA.
 
+````
+aln=${fasta file of protein sequences}
+
+# MSA
 mafft --thread 12 --maxiterate 1000 --localpair "${aln}".fasta > "${aln}"_mafft.aln
 
 # trim alignment
-module load bmge/1.12
 java -jar /apps/bmge/1.12/bin/BMGE.jar -m BLOSUM30 -i "${aln}"_mafft.aln -t AA -of "${aln}"_BMGE.fasta
 
 # convert fasta format to phy
 python3 /blue/lagard/yuanyifeng/scripts/fasta2phy.py -i "${aln}"_BMGE.fasta -o "${aln}"_BMGE.phy
 
 # tree building
-module load raxml-ng/1.1.0
 raxml-ng --msa "${aln}"_BMGE.fasta --model LG+G+F --prefix result --seed 123 \
          --search replicates=100 --threads 12 --tree pars{100},rand{100}
 
@@ -84,11 +89,7 @@ raxml-ng --bootstrap --msa "${aln}"_BMGE.fasta --bs-trees 1000 --seed 123 \
 raxml-ng --support --tree result.raxml.bestTree --threads 12 \
          --bs-trees boot.raxml.bootstraps --prefix support
 
-
 # Blastp
-# performed on Hipergator at hpg.rc.ufl.ed
-
-module load ncbi_blast/2.15.0
 # build blastDB
 dir_db=/blue/lagard/yuanyifeng/BV-DB/faafiles
 
